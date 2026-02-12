@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>For Sammy ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<style>
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: 'Georgia', serif;
+  background: #000; /* Black background */
+  color: white;
+  text-align: center;
+}
+
+.sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.7;
+  animation: twinkle 3s infinite ease-in-out;
+}
+
+@keyframes twinkle {
+  0% {opacity: 0.2;}
+  50% {opacity: 1;}
+  100% {opacity: 0.2;}
+}
+
+#intro {
+  position: absolute;
+  top: 35%;
+  width: 100%;
+}
+
+button.choice, #startBtn, #unlockBtn {
+  padding: 14px 28px;
+  font-size: 18px;
+  border: none;
+  border-radius: 40px;
+  background: white;
+  color: #ff1e56;
+  cursor: pointer;
+  margin: 15px;
+}
+
+#gameArea { display: none; }
+
+#basket {
+  width: 120px;
+  height: 20px;
+  background: white;
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 30px;
+  box-shadow: 0 0 15px rgba(255,255,255,0.8);
+}
+
+.heart {
+  width: 20px;
+  height: 20px;
+  background: #ff1e56;
+  position: absolute;
+  transform: rotate(45deg);
+}
+
+.heart:before,
+.heart:after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  background: #ff1e56;
+  border-radius: 50%;
+  position: absolute;
+}
+
+.heart:before { top: -10px; left: 0; }
+.heart:after { left: -10px; top: 0; }
+
+#score { position: absolute; top: 20px; left: 20px; }
+
+#floatingMessage {
+  position: absolute;
+  top: 80px;
+  width: 100%;
+  font-size: 20px;
+}
+
+#questionScreen, #finalScreen, #secretScreen {
+  display: none;
+  position: absolute;
+  top: 30%;
+  width: 100%;
+  font-size: 24px;
+}
+
+input {
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgMusic" loop>
+  <source src="romantic.mp3" type="audio/mpeg">
+</audio>
+
+<div id="intro">
+  <h1>Sammy ❤️</h1>
+  <p>I made something just for you.</p>
+  <button id="startBtn" onclick="startGame()">Start</button>
+</div>
+
+<div id="gameArea">
+  <div id="score">Hearts: 0</div>
+  <div id="floatingMessage">Catch my heart ❤️</div>
+  <div id="basket"></div>
+</div>
+
+<div id="questionScreen">
+  <p>Will you be my Valentine?</p>
+  <button class="choice" onclick="showFinal()">YES ❤️</button>
+</div>
+
+<div id="finalScreen">
+  <p>You just made me the happiest guy alive ❤️</p>
+  <p>Unlock something special?</p>
+  <input type="text" id="secretInput" placeholder="Enter password">
+  <br>
+  <button id="unlockBtn" onclick="unlockSecret()">Unlock</button>
+</div>
+
+<div id="secretScreen">
+  <p>I’m really grateful that it’s you. ❤️</p>
+</div>
+
+<script>
+let score = 0;
+let basket;
+let hearts = [];
+
+function createSparkles() {
+  for (let i = 0; i < 40; i++) {
+    let s = document.createElement("div");
+    s.classList.add("sparkle");
+    s.style.top = Math.random() * window.innerHeight + "px";
+    s.style.left = Math.random() * window.innerWidth + "px";
+    s.style.animationDelay = Math.random() * 3 + "s";
+    document.body.appendChild(s);
+  }
+}
+createSparkles();
+
+function startGame() {
+  document.getElementById("intro").style.display = "none";
+  document.getElementById("gameArea").style.display = "block";
+  document.getElementById("bgMusic").play(); // works on iPhone after click
+
+  basket = document.getElementById("basket");
+
+  // Mouse support
+  document.addEventListener("mousemove", moveBasket);
+
+  // Touch support (iPhone)
+  document.addEventListener("touchmove", function(e) {
+    moveBasket(e.touches[0]);
+  });
+
+  setInterval(createHeart, 800);
+  requestAnimationFrame(updateHearts);
+}
+
+function moveBasket(e) {
+  let x = e.clientX - 60;
+  if (x < 0) x = 0;
+  if (x > window.innerWidth - 120) x = window.innerWidth - 120;
+  basket.style.left = x + "px";
+}
+
+function createHeart() {
+  let heart = document.createElement("div");
+  heart.classList.add("heart");
+  heart.style.left = Math.random() * (window.innerWidth - 20) + "px";
+  heart.style.top = "0px";
+  document.body.appendChild(heart);
+
+  hearts.push({
+    el: heart,
+    y: 0,
+    speed: 2 + Math.random() * 2
+  });
+}
+
+function updateHearts() {
+  hearts.forEach((h, index) => {
+    h.y += h.speed;
+    h.el.style.top = h.y + "px";
+
+    let basketRect = basket.getBoundingClientRect();
+    let heartRect = h.el.getBoundingClientRect();
+
+    if (
+      heartRect.bottom >= basketRect.top &&
+      heartRect.left < basketRect.right &&
+      heartRect.right > basketRect.left
+    ) {
+      score++;
+      document.getElementById("score").innerHTML = "Hearts: " + score;
+      h.el.remove();
+      hearts.splice(index, 1);
+
+      if (score >= 15) {
+        document.getElementById("gameArea").style.display = "none";
+        document.getElementById("questionScreen").style.display = "block";
+      }
+    }
+
+    if (h.y > window.innerHeight) {
+      h.el.remove();
+      hearts.splice(index, 1);
+    }
+  });
+
+  requestAnimationFrame(updateHearts);
+}
+
+function showFinal() {
+  document.getElementById("questionScreen").style.display = "none";
+  document.getElementById("finalScreen").style.display = "block";
+}
+
+function unlockSecret() {
+  let input = document.getElementById("secretInput").value.toLowerCase();
+  if (input === "i love you") {
+    document.getElementById("finalScreen").style.display = "none";
+    document.getElementById("secretScreen").style.display = "block";
+  } else {
+    alert("Hint: three simple words ❤️");
+  }
+}
+</script>
+
+</body>
+</html>
